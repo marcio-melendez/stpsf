@@ -75,6 +75,7 @@ Contents
    :caption: Modeling Roman PSFs
 
    roman.rst
+   STPSF_Roman_PostSCIPA.ipynb
 
 .. toctree::
    :maxdepth: 1
