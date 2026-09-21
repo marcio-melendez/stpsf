@@ -10,39 +10,37 @@ build-backend = "setuptools.build_meta"
 name = "stpsf"
 description = "Creates simulated point spread functions for Space Telescopes (James Webb, Roman)"
 authors = [
-    { name = "Association of Universities for Research in Astronomy", email = "help@stsci.edu" },
+    { name = "STPSF developers, at Space Telescope Science Institute and elsewhere" },
 ]
 license-files = ["LICENSE.md"]
 dynamic = [
     "version",
 ]
 readme = "README.rst"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "astropy>=6.1.2,<7.1.0",
-    "astroquery>=0.4.7,<0.5.0",
-    "matplotlib>=3.9.1,<3.11.0",
-    "numpy>=2.1.0,<2.4.0",
-    "photutils>=1.13.0,<2.3.0",
-    "poppy>=1.1.2,<1.2.0",
-    "pysiaf>=0.23.3,<0.26.0",
-    "scipy>=1.14.0,<1.16.0",
-    "synphot>=1.4.0,<1.7.0",
+    "astropy>=7.0",
+    "astroquery>=0.4.8",
+    "matplotlib>=3.10",
+    "numpy>=2.2",
+    "photutils>=2.0",
+    "poppy>=1.2",
+    "pysiaf>=0.24",
+    "scipy>=1.15",
+    "synphot>=1.5",
 ]
-
 [project.optional-dependencies]
 test = [
     "pytest>=9.0",
-    "pytest-astropy",
 ]
 docs = [
     "nbsphinx",
+    "pandoc",
     "sphinx",
-    "stsci_rtd_theme",
     "sphinx-astropy",
     "sphinx-automodapi",
     "sphinx-issues",
-    "tomli; python_version <\"3.11\"",
+    "stsci_rtd_theme",
 ]
 jwst = [
     "jwst",
@@ -122,3 +120,25 @@ omit = [
     "*/stpsf/*/*/tests/*",
     "*/stpsf/version*",
 ]
+
+[tool.ruff]
+line-length = 120          # scientific code with array literals often wants more room than 88
+target-version = "py311"   # match whatever you actually run
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (unused imports, undefined names, etc.)
+    "I",   # isort (import sorting)
+    "UP",  # pyupgrade (modernize syntax)
+    "NPY", # numpy-specific rules, if you use numpy
+]
+ignore = [
+    "E501",  # line too long — formatter handles this; don't fight it on data literals
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402"]  # notebooks often have imports after code cells
+
+[tool.ruff.format]
+quote-style = "double"
