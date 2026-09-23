@@ -25,7 +25,7 @@ STPSF has been developed by Marshall Perrin, Marcio Meléndez, Shannon Osborne, 
 
 Getting Started with STPSF
 ----------------------------
-tsci Roman helpdesk
+stsci Roman helpdesk
 
 See `Using STPSF <usage.html>`_.
 
@@ -77,6 +77,7 @@ Contents
 
    roman.rst
    STPSF_Roman_Multi_Field.ipynb
+   STPSF_Roman_Pupil_Orientation.ipynb
 
 .. toctree::
    :maxdepth: 1
