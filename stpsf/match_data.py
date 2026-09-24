@@ -6,20 +6,55 @@ import pysiaf
 import stpsf
 
 
-def setup_sim_to_match_file(filename_or_HDUList, verbose=True, plot=False, choice='closest'):
+def setup_sim_to_match_file(filename_or_HDUList_or_datamodel, verbose=True, plot=False, choice='closest'):
     """Setup a stpsf Instrument instance matched to a given dataset
+
+    The input can flexibly be either:
+     - a string filename, either of a JWST FITS file or a Roman ASDF file
+     - a FITS HDUList instance, for JWST data
+     - a roman_datamodels.DataModel instance, for Roman data
 
     Parameters
     ----------
-    filename_or_HDUlist : str or astropy.io.fits HDUList
+    filename_or_HDUlist_or_datamodel : str or astropy.io.fits HDUList or Roman Datamodel
         file to load
     verbose : bool
         be more verbose?
     plot : bool
         plot?
     choice : string
-        Method to choose which OPD file to use, e.g. 'before', 'after', or 'closest'
+        Method to choose which OPD file to use, e.g. 'before', 'after', or 'closest', for
+        JWST data. Not currently relevant for Roman.
+
+    Returns
+    -------
+    an STSPF instrument instance for one of JWST NIRCam, NIRISS, NIRSpec, MIRI, FGS, or Roman WFI,
+    configured with filter, detector, and other relevant properties configured to match the input data.
+
     """
+
+    # Handle checking for JWST and Roman data in a flexible way that allows optional dependencies to be absent
+    # we may not be running in an environment that has both the JWST and Roman package collections installed
+
+    try:
+        import roman_datamodels as rdm
+        _HAVE_ROMAN = True
+    except ImportError:
+        _HAVE_ROMAN = False
+        rdm = None
+
+    # If the input is a Roman data model, or a filename for an ASDF file, then try to set up a Roman sim
+    if (_HAVE_ROMAN and (isinstance(filename_or_HDUList_or_datamodel, rdm.DataModel) or
+        (isinstance(filename_or_HDUList_or_datamodel, str) and filename_or_HDUList_or_datamodel.endswith('asdf')))):
+        return _setup_sim_to_match_file_roman(filename_or_HDUList_or_datamodel, verbose=verbose, plot=plot, choice=choice)
+    else:  # Otherwise, try to set up a JWST sim.
+        return _setup_sim_to_match_file_jwst(filename_or_HDUList_or_datamodel, verbose=verbose, plot=plot, choice=choice)
+
+
+def _setup_sim_to_match_file_jwst(filename_or_HDUList, verbose=True, plot=False, choice='closest'):
+    """JWST implementation for setup_sim_to_match_file
+    """
+
     if isinstance(filename_or_HDUList, str):
         if verbose:
             print(f'Setting up sim to match {filename_or_HDUList}')
@@ -108,6 +143,46 @@ Configured simulation instrument for:
     Det. Pos.: {inst.detector_position} {'in subarray' if "FULL" not in inst.aperturename else ""}
     Image plane mask: {inst.image_mask}
     Pupil plane mask: {inst.pupil_mask}
+    """
+        )
+
+    return inst
+
+
+def _setup_sim_to_match_file_roman(filename_or_datamodel, verbose=True, plot=False, choice='closest'):
+    """Roman implementation for setup_sim_to_match_file
+    """
+    import roman_datamodels as rdm
+    if isinstance(filename_or_datamodel, str):
+        if verbose:
+            print(f'Setting up sim to match {filename_or_datamodel}')
+        datamodel = rdm.open(filename_or_datamodel)
+    elif isinstance(filename_or_datamodel, rdm.DataModel):
+        datamodel = filename_or_datamodel
+        if verbose:
+            print('Setting up sim to match provided Roman Datamodel object')
+    else:
+        raise ValueError("Don't know how to load a Roman data model from that type of input")
+
+    inst = stpsf.WFI()
+    inst.detector = datamodel.meta.instrument.detector
+
+    filter_or_disperser = datamodel.meta.instrument.optical_element
+    # special case: STPSF has both  'GRISM0' and 'GRISM1' to handle the 0th undispersed light and 1st order spectra.
+    # if we are given a grism file, by default let's assume the user wants to model the 1st order spectra
+    if filter_or_disperser.upper() == 'GRISM':
+        filter_or_disperser = 'GRISM1'
+    inst.filter = filter_or_disperser
+
+    if verbose:
+        print(
+            f"""
+Configured simulation instrument for:
+    Instrument: {inst.name}
+    Filter: {inst.filter}
+    Detector: {inst.detector}
+    Apername: {inst.aperturename}
+    Det. Pos.: {inst.detector_position} {'in subarray' if "FULL" not in inst.aperturename else ""}
     """
         )
 

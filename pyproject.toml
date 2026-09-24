@@ -45,6 +45,10 @@ docs = [
 jwst = [
     "jwst",
 ]
+roman= [
+    "roman_datamodels",
+]
+
 
 [project.urls]
 Homepage = "http://stpsf.readthedocs.io/"
