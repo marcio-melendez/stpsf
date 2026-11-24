@@ -1300,7 +1300,6 @@ class WebbFieldDependentAberration(poppy.OpticalElement):
         self.si_wfe_type = ('Interpolated', 'SI WFE was interpolated between available meas.')
 
         # Retrieve those Zernike coeffs
-        # Field point interpolation
         v2_tel, v3_tel = telcoords_am
         coeffs = []
         for i in range(1, 37):
@@ -1309,7 +1308,17 @@ class WebbFieldDependentAberration(poppy.OpticalElement):
 
             M_data = (v2, v3)
             # define poly deg
-            deg = 1
+            # most detectors have limited number of calibration points
+            # deg = 1 needs four coefficients
+            # deg = 2 needs nine coefficients
+            # we can change the deg value depending on the number of calibration points
+            # available per detector
+            if (lookup_name == 'NIRCamLWA') or (lookup_name == 'NIRCamSWA') or\
+                    (lookup_name == 'NIRCamLWB') or (lookup_name == 'NIRCamSWB'):
+                deg = 2
+            else:
+                deg = 1
+
             fit_model = partial(utils.poly2d_model, deg=deg)
             # initial conditions, this needs to match the poly deg
             p0 = np.ones((deg + 1)**2)#inital guess
