@@ -1313,8 +1313,7 @@ class WebbFieldDependentAberration(poppy.OpticalElement):
             # deg = 2 needs nine coefficients
             # we can change the deg value depending on the number of calibration points
             # available per detector
-            if (lookup_name == 'NIRCamLWA') or (lookup_name == 'NIRCamSWA') or\
-                    (lookup_name == 'NIRCamLWB') or (lookup_name == 'NIRCamSWB'):
+            if lookup_name in ('NIRCamLWA', 'NIRCamLWB', 'NIRCamSWA', 'NIRCamSWB'):
                 deg = 2
             else:
                 deg = 1
